@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador del Átomo de Bohr Hidrogenoide</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 30%, #001030, #000);
+      color: #e0faff;
+      font-family: "Poppins", sans-serif;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: linear-gradient(90deg, #00d4ff, #00ff9d, #0066ff);
+      background-size: 300% 300%;
+      animation: gradiente 6s infinite alternate;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+      padding: 25px 0;
+      border-bottom: 3px solid rgba(0,255,255,0.3);
+    }
+
+    @keyframes gradiente {
+      from { background-position: 0% 50%; }
+      to { background-position: 100% 50%; }
+    }
+
+    header h1 {
+      font-size: 2.5em;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 15px #00d4ff, 0 0 25px #00ffcc;
+      margin: 0;
+    }
+
+    header h2 {
+      font-size: 1.2em;
+      color: #b3ffff;
+      letter-spacing: 2px;
+      margin-top: 5px;
+      text-shadow: 0 0 10px #00a3cc;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(0,255,255,0.3);
+      border-radius: 20px;
+      padding: 25px;
+      width: 430px;
+      margin: 30px auto;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 25px rgba(0,255,255,0.3);
+      transition: transform 0.3s ease;
+    }
+    .panel:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 40px rgba(0,255,255,0.5);
+    }
+
+    select, button {
+      margin: 10px;
+      padding: 10px 15px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1em;
+      outline: none;
+      font-weight: 600;
+    }
+
+    select {
+      background: rgba(0, 255, 255, 0.1);
+      color: #00eaff;
+      border: 1px solid rgba(0,255,255,0.3);
+    }
+
+    select:hover {
+      background: rgba(0, 255, 255, 0.2);
+    }
+
+    button {
+      background: linear-gradient(90deg, #00d4ff, #00ff9d);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0,255,255,0.6);
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0,255,255,0.9);
+    }
+
+    #info {
+      margin-top: 15px;
+      font-size: 0.95em;
+      color: #ccffff;
+    }
+
+    canvas {
+      background: radial-gradient(circle at center, rgba(0,255,255,0.05), transparent);
+      border-radius: 50%;
+      margin-top: 15px;
+      box-shadow: 0 0 25px rgba(0,255,255,0.2);
+      animation: flotar 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes flotar {
+      from { transform: translateY(0px); }
+      to { transform: translateY(-10px); }
+    }
+
+    #espectro {
+      margin-top: 25px;
+      width: 420px;
+      height: 60px;
+      background: linear-gradient(to right,
+        violet, indigo, blue, cyan, green, yellow, orange, red);
+      border-radius: 15px;
+      border: 3px solid rgba(0,255,255,0.3);
+      position: relative;
+      margin-left: auto;
+      margin-right: auto;
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(0,255,255,0.4);
+    }
+
+    #linea {
+      position: absolute;
+      top: 0;
+      width: 3px;
+      height: 100%;
+      background-color: white;
+      box-shadow: 0 0 15px white;
+      display: none;
+      transition: left 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>⚛️ Simulador del Átomo de Bohr Hidrogenoide ⚛️</h1>
+    <h2>Equipo 7 – El Átomo</h2>
+  </header>
+
+  <div class="panel">
+    <label>Elemento:</label>
+    <select id="elemento">
+      <option value="1">H (Z = 1)</option>
+      <option value="2">He⁺ (Z = 2)</option>
+      <option value="3">Li²⁺ (Z = 3)</option>
+      <option value="4">Be³⁺ (Z = 4)</option>
+      <option value="5">B⁴⁺ (Z = 5)</option>
+    </select><br>
+
+    <label>De nivel n₁:</label>
+    <select id="n1">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <label>a nivel n₂:</label>
+    <select id="n2">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select><br>
+    <button onclick="transicion()">Simular transición</button>
+    <div id="info"></div>
+  </div>
+
+  <canvas id="atomCanvas" width="400" height="400"></canvas>
+
+  <div id="espectro">
+    <div id="linea"></div>
+  </div>
+
+  <audio id="sonidoTransicion" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2c88a5b516.mp3?filename=futuristic-sound-ambient-145038.mp3"></audio>
+
+  <script>
+    const canvas = document.getElementById('atomCanvas');
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const a0 = 30; 
+    let electronRadius = a0;
+    const sonido = document.getElementById("sonidoTransicion");
+
+    function dibujarAtom(n) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 20);
+      grad.addColorStop(0, "#fffb99");
+      grad.addColorStop(1, "#ffcc00");
+      ctx.beginPath();
+      ctx.arc(cx, cy, 12, 0, 2 * Math.PI);
+      ctx.fillStyle = grad;
+      ctx.shadowColor = "#ffdd00";
+      ctx.shadowBlur = 20;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      for (let i = 1; i <= 5; i++) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, a0 * i, 0, 2 * Math.PI);
+        ctx.strokeStyle = "rgba(0,255,255,0.25)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      const angle = Math.random() * 2 * Math.PI;
+      const x = cx + electronRadius * Math.cos(angle);
+      const y = cy + electronRadius * Math.sin(angle);
+      const gradE = ctx.createRadialGradient(x, y, 0, x, y, 10);
+      gradE.addColorStop(0, "#aaffff");
+      gradE.addColorStop(1, "#00d4ff");
+      ctx.arc(x, y, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = gradE;
+      ctx.shadowColor = "#00eaff";
+      ctx.shadowBlur = 15;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function transicion() {
+      const Z = parseInt(document.getElementById("elemento").value);
+      const n1 = parseInt(document.getElementById("n1").value);
+      const n2 = parseInt(document.getElementById("n2").value);
+      const E0 = -13.6; 
+
+      if (n1 === n2) {
+        alert("Los niveles no pueden ser iguales.");
+        return;
+      }
+
+      const E1 = E0 * (Z * Z) / (n1 * n1);
+      const E2 = E0 * (Z * Z) / (n2 * n2);
+      const deltaE = E2 - E1; 
+      const hc = 1240; 
+      const lambda = Math.abs(hc / deltaE); 
+      const tipo = deltaE < 0 ? "Emisión" : "Absorción";
+      const color = obtenerColor(lambda);
+
+      let pasos = 25;
+      let contador = 0;
+      const radioInicial = a0 * n1;
+      const radioFinal = a0 * n2;
+
+      // reproducir sonido al iniciar transición
+      sonido.currentTime = 0;
+      sonido.volume = 0.5;
+      sonido.play().catch(() => {});
+
+      const anim = setInterval(() => {
+        contador++;
+        const t = contador / pasos;
+        electronRadius = radioInicial + (radioFinal - radioInicial) * t;
+        dibujarAtom(n2);
+        if (contador === pasos) {
+          clearInterval(anim);
+          mostrarInfo(Z, tipo, deltaE, lambda, color);
+          dibujarRayo(color);
+          mostrarEspectro(lambda, tipo);
+        }
+      }, 50);
+    }
+
+    function mostrarInfo(Z, tipo, deltaE, lambda, color) {
+      document.getElementById("info").innerHTML = `
+        <b>Elemento:</b> Z = ${Z}<br>
+        <b>Tipo:</b> ${tipo}<br>
+        <b>ΔE:</b> ${deltaE.toFixed(3)} eV<br>
+        <b>Longitud de onda:</b> ${lambda.toFixed(2)} nm<br>
+        <b>Color aproximado:</b> <span style="color:${color}; font-weight:bold;">${color}</span>
+      `;
+    }
+
+    function dibujarRayo(color) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx, cy - 160);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 20;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function obtenerColor(lambda) {
+      if (lambda < 380) return "#8B00FF";
+      if (lambda < 450) return "#0000FF";
+      if (lambda < 495) return "#00FFFF";
+      if (lambda < 570) return "#00FF00";
+      if (lambda < 590) return "#FFFF00";
+      if (lambda < 620) return "#FF7F00";
+      if (lambda <= 750) return "#FF0000";
+      return "#FFFFFF";
+    }
+
+    function mostrarEspectro(lambda, tipo) {
+      const espectro = document.getElementById("espectro");
+      const linea = document.getElementById("linea");
+      let pos = (lambda - 380) / (750 - 380);
+      pos = Math.max(0, Math.min(1, pos));
+      const x = pos * espectro.clientWidth;
+      linea.style.left = `${x}px`;
+      linea.style.display = "block";
+      linea.style.backgroundColor = tipo === "Emisión" ? "white" : "#000";
+      linea.style.boxShadow = tipo === "Emisión" ? "0 0 15px white" : "none";
+    }
+
+    dibujarAtom(1);
+  </script>
+</body>
+</html>
